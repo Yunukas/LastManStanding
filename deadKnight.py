@@ -1,7 +1,7 @@
 import arcade
 from gameVariables import KNIGHT_DEAD
 from constants import KNIGHT_SCALE
-class DeadWizard(arcade.Sprite):
+class DeadKnight(arcade.Sprite):
     def __init__(self):
         super().__init__()
 

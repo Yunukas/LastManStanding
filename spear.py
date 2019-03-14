@@ -22,16 +22,13 @@ class Spear(arcade.Sprite):
         self.center_x += self.change_x * SPEAR_SPEED * 1.2
         self.center_y += self.change_y * SPEAR_SPEED/3
 
-        # print(self.angle)
 
         if self.mirrored:
             self.angle += math.sin(self.angle_change)
         else:
             self.angle -= math.sin(self.angle_change)
 
-
-        # if self.angle > 89:
-        #     self.angle_change = 0
+        ## move spear in a curve direction
         if self.angle < 1 and not self.mirrored and not self.flat:
             self.change_y = -self.change_y
             # self.angle_change = math.pi

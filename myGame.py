@@ -14,7 +14,7 @@ import sound
 import os
 from zombie import Zombie
 from coin import Coin
-from deadWizard import DeadWizard
+from deadKnight import DeadKnight
 from deadZombie import DeadZombie
 from chest import  Chest
 import time
@@ -674,7 +674,7 @@ class MyWindow(arcade.Window):
                 len(arcade.check_for_collision_with_list(self.player, self.enemy_list)) > 0:
 
                 if self.temp_state != GameState.GAME_ENDING:
-                    dead_wizard  = DeadWizard()
+                    dead_wizard  = DeadKnight()
                     dead_wizard.center_x = self.player.center_x
                     dead_wizard.center_y = self.player.center_y
                     self.temp_state = GameState.GAME_ENDING
