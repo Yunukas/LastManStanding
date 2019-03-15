@@ -87,7 +87,7 @@ class MyWindow(arcade.Window):
         # Sprite lists
         self.player_list = None
         self.wall_list = None
-        self.hidden_wall_list = None
+        self.invisible_wall_list = None
         self.player = None
         self.enemy_list = None
         self.boss_list = None
@@ -146,20 +146,24 @@ class MyWindow(arcade.Window):
     def draw_mission_complete(self):
         output = "YOU WIN! CONGRATULATIONS"
         arcade.draw_text(output, SCREEN_WIDTH//5, SCREEN_HEIGHT//1.5, arcade.color.ASPARAGUS, 30)
-        # arcade.draw_text(output, 70, 5, arcade.color.WHITE, 14)
 
     def draw_game_over(self):
-        
+        """
+        Draw "Game Over Screen" across the screen.
+        """
         texture = arcade.load_texture(GAME_OVER)
         arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,
                                       SCREEN_WIDTH,
                                       SCREEN_HEIGHT, texture, 0)
     
     def draw_game(self):
+        """
+        Draw the game
+        """
         arcade.draw_texture_rectangle(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2,SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
 
         # Draw all the sprites.
-        self.hidden_wall_list.draw()
+        self.invisible_wall_list.draw()
         self.wall_list.draw()
         self.player_list.draw()
         self.enemy_list.draw()
@@ -169,7 +173,6 @@ class MyWindow(arcade.Window):
         self.coin_list.draw()
         self.dead_wizard_list.draw()
         self.power_up_list.draw()
-
 
 
         for enemy in self.enemy_list:
@@ -203,7 +206,7 @@ class MyWindow(arcade.Window):
         height = random.randrange(3)
         horizontal_position = random.randrange(2)
 
-        ## position the zombies between hidden wall tiles and proper heights
+        ## position the collectibles between invisible wall tiles and at proper heights
         if height == 0:
             power_up.bottom = 180
 
@@ -237,7 +240,7 @@ class MyWindow(arcade.Window):
         success = False
 
         while not success:
-            ## position the zombies between hidden wall tiles and proper heights
+            ## position the zombies between invisible wall tiles and at proper heights
             if height == 0:
                 new_zombie.bottom = 220
                 
@@ -273,40 +276,50 @@ class MyWindow(arcade.Window):
 
         # Sprite lists
 
-        ## Main Char (Wizard)
+        ## Main Char (Knight)
         self.player_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
-        self.hidden_wall_list = arcade.SpriteList()
+        self.invisible_wall_list = arcade.SpriteList()
         self.bullet_list = arcade.SpriteList()
         self.explosion_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
         self.dead_wizard_list = arcade.SpriteList()
         self.power_up_list = arcade.SpriteList()
-        self.fire_power_up_is_on = False
-        self.shooting_fire = False
+
+        # set the game states
         self.state = GameState.MAIN_MENU
         self.temp_state = GameState.PLAYING
-        self.game_end_timer = 120
+
         # score
         self.score = 0
         self.gold = 0
         # timer
         self.timer = 0
 
+        # booleans for special game conditions
+        self.fire_power_up_is_on = False
+        self.shooting_fire = False
+
+        # time to show game end screen ( player death animation )
+        # before moving to the game over screen
+        self.game_end_timer = 120
+
         ## difficulty increase timer
         self.boss_timer = 0
         self.enemy_timer
+
+
         self.player = Knight()
-        
         self.player.center_x = SCREEN_WIDTH // 2
         self.player.center_y = 350
-        
         self.player.setTextureChangeDistance(20)
         self.player.setJumpSpeed = JUMP_SPEED
         self.player.setSpeed = MOVEMENT_SPEED
 
         self.player_list.append(self.player)
 
+
+        # set background image
         self.background = arcade.load_texture(LEVEL_1_BACKGROUND)
 
         ## Enemies ( Boss and zombies )
@@ -328,7 +341,7 @@ class MyWindow(arcade.Window):
 
                 # For this map, the numbers represent:
                 # -1 = empty
-                # 44 = grass
+                # 60 = invisible wall
                 
                 if item == 60:
                     hidden_wall = arcade.Sprite(EMPTY_TILE, SPRITE_SCALING)
@@ -336,9 +349,8 @@ class MyWindow(arcade.Window):
                     hidden_wall.center_x = column_index * SCALED_TILE_SIZE + SCALED_TILE_SIZE/2
                     hidden_wall.center_y = (MAP_HEIGHT - row_index) * SCALED_TILE_SIZE
 
-                    self.hidden_wall_list.append(hidden_wall)
-        
-        # Now that we've got the map, loop through and create the sprites
+                    self.invisible_wall_list.append(hidden_wall)
+
         for row_index in range(len(map_array)):
             for column_index in range(len(map_array[row_index])):
                 wall = arcade.Sprite(WALL, SPRITE_SCALING)
@@ -346,7 +358,9 @@ class MyWindow(arcade.Window):
 
                 # For this map, the numbers represent:
                 # -1 = empty
-                # 44 = grass
+                # 65 = wall left corner
+                # 66 = wall
+                # 67 = wall right corner
 
 
                 if item == 65:
@@ -358,6 +372,7 @@ class MyWindow(arcade.Window):
                     wall = arcade.Sprite(WALL_RIGHT, SPRITE_SCALING)
 
 
+                # if the item is one of above, add it to the list
                 if item > 60:
                     wall.left = column_index * SCALED_TILE_SIZE
                     wall.top = (MAP_HEIGHT - row_index) * SCALED_TILE_SIZE
@@ -365,8 +380,8 @@ class MyWindow(arcade.Window):
                     # Add the sprite
                     self.wall_list.append(wall)
 
+
         # Now that we've got the map, loop through and create the sprites
-        
         
         for _ in range(ZOMBIE_COUNT):
             self.createZombie()
@@ -393,7 +408,7 @@ class MyWindow(arcade.Window):
 
         # This command has to happen before we start drawing
         arcade.start_render()
-        # print(f"state is:  {self.state}")
+
         if self.state == GameState.MAIN_MENU:
             self.draw_main_menu()
         elif self.state == GameState.MAIN_MENU_CONTROLS:
@@ -466,10 +481,7 @@ class MyWindow(arcade.Window):
                     for i in range(len(KNIGHT_ATTACK)):
                         self.player.texture = arcade.load_texture(KNIGHT_ATTACK[i], scale=0.6, mirrored=mirrored)
 
-                    # bullet = fire.Fire(scale=FIRE_BLAST_SCALE, mirrored=mirrored)
-                    # bullet.center_x = self.player.center_x
-                    # bullet.center_y = self.player.center_y
-                    # bullet.change_x = change_x
+
                     if not self.shooting_fire:
                         bullet = Spear(mirrored=mirrored)
                         bullet.center_x = self.player.center_x
@@ -487,50 +499,6 @@ class MyWindow(arcade.Window):
                     sonic = sound.Sound(FIRE_SOUND)
                     sonic.play()
 
-        # elif self.state == GameState.PLAYING and self.temp_state != GameState.GAME_ENDING:
-        #     if key == arcade.key.UP:
-        #         # This line below is new. It checks to make sure there is a platform underneath
-        #         # the player. Because you can't jump if there isn't ground beneath your feet.
-        #         if self.physics_engine.can_jump():
-        #             self.player.change_y = JUMP_SPEED
-        #     elif key == arcade.key.LEFT:
-        #         self.player.change_x = -MOVEMENT_SPEED
-        #         self.lastdirection = 'l'
-        #     elif key == arcade.key.RIGHT:
-        #         self.player.change_x = MOVEMENT_SPEED
-        #         self.lastdirection = 'r'
-        #     elif key == arcade.key.SPACE:
-        #         if len(self.bullet_list) < 1:
-        #             mirrored = False
-        #             change_x = 1
-        #
-        #             if self.lastdirection == 'l':
-        #                 mirrored = True
-        #                 change_x = -1
-        #
-        #             for i in range(len(KNIGHT_ATTACK)):
-        #                 self.player.texture = arcade.load_texture(KNIGHT_ATTACK[i], scale=0.6, mirrored=mirrored)
-        #
-        #             # bullet = fire.Fire(scale=FIRE_BLAST_SCALE, mirrored=mirrored)
-        #             # bullet.center_x = self.player.center_x
-        #             # bullet.center_y = self.player.center_y
-        #             # bullet.change_x = change_x
-        #             if not self.shooting_fire:
-        #                 bullet = Spear(mirrored=mirrored)
-        #                 bullet.center_x = self.player.center_x
-        #                 bullet.center_y = self.player.center_y
-        #                 bullet.change_x = change_x
-        #                 bullet.change_y = 1
-        #                 self.bullet_list.append(bullet)
-        #             else:
-        #                 bullet = Fire(scale=FIRE_BLAST_SCALE, mirrored=mirrored)
-        #                 bullet.center_x = self.player.center_x
-        #                 bullet.center_y = self.player.center_y
-        #                 bullet.change_x = change_x
-        #                 self.bullet_list.append(bullet)
-        #
-        #             sonic = sound.Sound(FIRE_SOUND)
-        #             sonic.play()
             
     def on_key_release(self, key, modifiers):
         """
@@ -539,23 +507,7 @@ class MyWindow(arcade.Window):
         if self.state == GameState.PLAYING and self.temp_state != GameState.GAME_ENDING:
             if key == arcade.key.LEFT or key == arcade.key.RIGHT:
                 self.player.change_x = 0
-        # elif key == arcade.key.SPACE:
-        #     self.player.texture = arcade.load_texture("images/adventurer-attack2-04.png")
-    
-    # def on_mouse_press(self, x, y, button, modifiers):
-    #     """
-    #     Called when the user presses the mouse buttons
-    #     """
-    #     if self.state == GameState.MAIN_MENU:
-    #         print(f"mouse x: {x} y: {y}")
-    #         self.setup()
-    #         gs = sound.Sound(GAME_START_SOUND)
-    #         gs.play()
-    #         self.state = GameState.PLAYING
-    #     elif self.state == GameState.GAME_OVER:
-    #         self.setup()
-    #         self.state = GameState.MAIN_MENU
-        
+
 
     def update(self, delta_time):
         if self.state == GameState.PLAYING:
@@ -587,24 +539,23 @@ class MyWindow(arcade.Window):
             self.coin_list.update()
             self.power_up_list.update()
             self.power_up_list.update_animation()
-            # self.dead_wizard_list.update()
-            # self.dead_wizard_list.update_animation()
-            
+
             if self.player.center_x < 20:
                 self.player.center_x = 930
             elif self.player.center_x > 940:
                 self.player.center_x = 30
-            # changed = False
-            # See if the player hit a worm. If so, game over.
 
+            # keep zombies in platforms with the help of invisible walls
             for enemy in self.enemy_list:
-                hit_list = arcade.check_for_collision_with_list(enemy, self.hidden_wall_list)
+                hit_list = arcade.check_for_collision_with_list(enemy, self.invisible_wall_list)
                 if enemy.left < 20 or enemy.right > 940:
                     enemy.changeDir()
                 
                 if len(hit_list) > 0:
                     enemy.changeDir()
 
+
+            ## check if bullets hit enemies
             for bullet in self.bullet_list:
                 if bullet.center_x < 0 or bullet.center_x > 960:
                     bullet.kill()
@@ -614,6 +565,8 @@ class MyWindow(arcade.Window):
                     self.score += 1
                     bullet.kill()
                     hp = hit_list[0].getDamage(self.player.dmg)
+
+                    # if zombie hp is 0, kill it and play sound
                     if hp <= 0:
                         zombie_dying = DeadZombie()
                         zombie_dying.center_x = hit_list[0].center_x
@@ -622,6 +575,7 @@ class MyWindow(arcade.Window):
                         zombie_death_sound = sound.Sound(ZOMBIE_DEATH_SOUND)
                         zombie_death_sound.play()
 
+                        ## create a collectible coin
                         new_coin = Coin()
                         new_coin.center_x = hit_list[0].center_x
                         new_coin.center_y = hit_list[0].center_y
