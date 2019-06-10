@@ -1,1 +1,1 @@
-A top down platform game developed with Python using Arcade library.
+A top down platfor game developed with Python using Arcade library.

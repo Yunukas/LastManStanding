@@ -25,3 +25,5 @@ class Zombie(enemy.Enemy):
 
     def update(self):            
         self.center_x += self.change_x * self.speed
+        self.update_hp_bar_location()
+

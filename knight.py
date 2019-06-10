@@ -10,24 +10,20 @@ class Knight(movingChar.MovingChar):
         self.movementSpeed = 0
         self.jumpSpeed = 0
         self.texture_change_distance = 30
-        self.scale = 1
+        self.scale = KNIGHT_SCALE
         
         self.dmg = PLAYER_DAMAGE
         
-        self.stand_right_textures.append(arcade.load_texture(KNIGHT_IDLE,
-                                                                    scale=KNIGHT_SCALE))
+        self.stand_right_textures.append(arcade.load_texture(KNIGHT_IDLE, scale=KNIGHT_SCALE))
    
-        self.stand_left_textures.append(arcade.load_texture(KNIGHT_IDLE,
-                                                                   scale=KNIGHT_SCALE, mirrored=True))
+        self.stand_left_textures.append(arcade.load_texture(KNIGHT_IDLE, scale=KNIGHT_SCALE, mirrored=True))
 
         for i in range(4):
-            self.walk_right_textures.append(arcade.load_texture(KNIGHT_RUN[i],
-                                                                   scale=KNIGHT_SCALE))
+            self.walk_right_textures.append(arcade.load_texture(KNIGHT_RUN[i], scale=KNIGHT_SCALE))
 
 
         for i in range(4):
-            self.walk_left_textures.append(arcade.load_texture(KNIGHT_RUN[i],
-                                                                   scale=KNIGHT_SCALE, mirrored=True))
+            self.walk_left_textures.append(arcade.load_texture(KNIGHT_RUN[i], scale=KNIGHT_SCALE, mirrored=True))
     def setSpeed(self, speed):
         self.movementSpeed = speed
     

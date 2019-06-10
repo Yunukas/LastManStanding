@@ -62,3 +62,5 @@ class Chaser(enemy.Enemy):
             self.mirrored = False
             self.lastDirection = 'r'
             self.changeDir()
+
+        self.update_hp_bar_location()

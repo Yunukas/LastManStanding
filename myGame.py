@@ -60,7 +60,7 @@ class MyWindow(arcade.Window):
         Initializer
         """
         # Call the parent class
-        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT)
+        super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
 
 
         # Set the working directory (where we expect to find files) to the same
@@ -69,6 +69,8 @@ class MyWindow(arcade.Window):
         # as mentioned at the top of this program.
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
+
+
 
 
         # game state
@@ -97,7 +99,9 @@ class MyWindow(arcade.Window):
         self.power_up_list = None
         self.fire_power_up_is_on = False
         self.shooting_fire = False
-        self.dead_wizard_list = None
+        self.dead_knight_list = None
+        self.animated_list = None
+        self.hp_bar_list = None
 
         # Physics engine
         self.physics_engine = None
@@ -166,26 +170,39 @@ class MyWindow(arcade.Window):
         self.invisible_wall_list.draw()
         self.wall_list.draw()
         self.player_list.draw()
-        self.enemy_list.draw()
-        self.boss_list.draw()
-        self.bullet_list.draw()
+        # self.enemy_list.draw()
+        # self.boss_list.draw()
+        # self.bullet_list.draw()
         self.explosion_list.draw()
-        self.coin_list.draw()
-        self.dead_wizard_list.draw()
-        self.power_up_list.draw()
+        # self.coin_list.draw()
+        self.dead_knight_list.draw()
+        # self.power_up_list.draw()
+        self.animated_list.draw()
+        self.hp_bar_list.draw()
 
-
-        for enemy in self.enemy_list:
-            enemy.draw_hp_bar()
-
-        for boss in self.boss_list:
-            boss.draw_hp_bar()
+        # for enemy in self.enemy_list:
+        #     # enemy.draw_hp_bar()
+        #     arcade.draw_rectangle_outline(enemy.center_x, enemy.top + enemy.height * 0.1, enemy.hp_bar_width, enemy.hp_bar_height,
+        #                                   enemy.hp_bar_outline_color, 2, 0)
+        #
+        #     arcade.draw_rectangle_filled(enemy.center_pos, enemy.top + enemy.height * 0.1, (enemy.remaining_hp/enemy.total_hp) * enemy.hp_bar_width, enemy.hp_bar_height, enemy.hp_bar_color, 0)
+        #
+        #
+        # for boss in self.boss_list:
+        #     # boss.draw_hp_bar()
+        #     arcade.draw_rectangle_outline(boss.center_x, boss.top + boss.height * 0.1, boss.hp_bar_width,
+        #                                   boss.hp_bar_height,
+        #                                   boss.hp_bar_outline_color, 2, 0)
+        #
+        #     arcade.draw_rectangle_filled(boss.center_pos, boss.top + boss.height * 0.1,
+        #                                  (boss.remaining_hp / boss.total_hp) * boss.hp_bar_width,
+        #                                  boss.hp_bar_height, boss.hp_bar_color, 0)
 
         if self.temp_state == GameState.GAME_ENDING:
             if self.game_end_timer != 0:
                 self.game_end_timer -= 1
                 if self.game_end_timer % 10 == 0:
-                    self.dead_wizard_list.update()
+                    self.dead_knight_list.update()
             else:
                self.state = GameState.GAME_OVER 
 
@@ -228,6 +245,7 @@ class MyWindow(arcade.Window):
                 power_up.center_x = random.randrange(720, 920)
 
         self.power_up_list.append(power_up)
+        self.animated_list.append(power_up)
 
 
     ## create zombies with this function
@@ -268,8 +286,20 @@ class MyWindow(arcade.Window):
             else:
                 print('collision')
 
-
+        # new_zombie.rect_outline = arcade.create_rectangle_outline(new_zombie.center_x, new_zombie.top + new_zombie.height * 0.1,
+        #                                                new_zombie.hp_bar_width,
+        #                                                new_zombie.hp_bar_height, new_zombie.hp_bar_outline_color, 2, 0)
+        #
+        # new_zombie.rect = arcade.create_rectangle_filled(new_zombie.center_pos, new_zombie.top + new_zombie.height * 0.1,
+        #                                             (new_zombie.remaining_hp / new_zombie.total_hp) * new_zombie.hp_bar_width,
+        #                                             new_zombie.hp_bar_height,
+        #                                             new_zombie.hp_bar_color, 0)
+        #
+        # # self.hp_bar_list.append(rect_outline)
+        # self.hp_bar_list.append(new_zombie.rect)
+        # self.hp_bar_list.append(new_zombie.rect_outline)
         self.enemy_list.append(new_zombie)
+        self.animated_list.append(new_zombie)
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -283,7 +313,7 @@ class MyWindow(arcade.Window):
         self.bullet_list = arcade.SpriteList()
         self.explosion_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
-        self.dead_wizard_list = arcade.SpriteList()
+        self.dead_knight_list = arcade.SpriteList()
         self.power_up_list = arcade.SpriteList()
 
         # set the game states
@@ -326,11 +356,18 @@ class MyWindow(arcade.Window):
         self.boss_list = arcade.SpriteList()
         self.enemy_list = arcade.SpriteList()
 
+        ## all animated list
+        self.animated_list = arcade.SpriteList()
+
+        ## hp bar list
+        self.hp_bar_list = arcade.ShapeElementList()
+
         boss = chasingBoss.Chaser()
         boss.center_x = 50
         boss.center_y = 500
 
         self.boss_list.append(boss)
+        self.animated_list.append(boss)
         # Get a 2D array made of numbers based on the map
         map_array = get_map("maps/lmmap1.csv")
 
@@ -469,7 +506,7 @@ class MyWindow(arcade.Window):
                 self.player.change_x = MOVEMENT_SPEED
                 self.lastdirection = 'r'
         if key == arcade.key.SPACE:
-            if self.state == GameState.PLAYING:
+            if self.state == GameState.PLAYING and self.temp_state != GameState.GAME_ENDING:
                 if len(self.bullet_list) < 1:
                     mirrored = False
                     change_x = 1
@@ -489,12 +526,14 @@ class MyWindow(arcade.Window):
                         bullet.change_x = change_x
                         bullet.change_y = 1
                         self.bullet_list.append(bullet)
+                        self.animated_list.append(bullet)
                     else:
-                        bullet = Fire(scale=FIRE_BLAST_SCALE, mirrored=mirrored)
+                        bullet = Fire(mirrored=mirrored)
                         bullet.center_x = self.player.center_x
                         bullet.center_y = self.player.center_y
                         bullet.change_x = change_x
                         self.bullet_list.append(bullet)
+                        self.animated_list.append(bullet)
 
                     sonic = sound.Sound(FIRE_SOUND)
                     sonic.play()
@@ -528,31 +567,46 @@ class MyWindow(arcade.Window):
             self.physics_engine.update()
         
             self.player_list.update_animation()
-            self.enemy_list.update_animation()
-            self.enemy_list.update()
-            self.boss_list.update_animation()
-            self.boss_list.update()
-            self.bullet_list.update()
-            self.bullet_list.update_animation()
+            # self.enemy_list.update_animation()
+            # self.enemy_list.update()
+            # self.boss_list.update_animation()
+            # self.boss_list.update()
+            # self.bullet_list.update()
+            # self.bullet_list.update_animation()
             self.explosion_list.update()
-            self.coin_list.update_animation()
-            self.coin_list.update()
-            self.power_up_list.update()
-            self.power_up_list.update_animation()
+            # self.coin_list.update_animation()
+            # self.coin_list.update()
+            # self.power_up_list.update()
+            # self.power_up_list.update_animation()
+
+            self.animated_list.update()
+            self.animated_list.update_animation()
+
 
             if self.player.center_x < 20:
                 self.player.center_x = 930
             elif self.player.center_x > 940:
                 self.player.center_x = 30
 
+
+            #  initialize the shape element list to clear items
+            self.hp_bar_list = arcade.ShapeElementList()
+
             # keep zombies in platforms with the help of invisible walls
             for enemy in self.enemy_list:
+                self.hp_bar_list.append(enemy.rect)
+                # self.hp_bar_list.append(enemy.rect_outline)
+
                 hit_list = arcade.check_for_collision_with_list(enemy, self.invisible_wall_list)
                 if enemy.left < 20 or enemy.right > 940:
                     enemy.changeDir()
                 
                 if len(hit_list) > 0:
                     enemy.changeDir()
+
+            ## create boss hp bar
+            for boss in self.boss_list:
+                self.hp_bar_list.append(boss.rect)
 
 
             ## check if bullets hit enemies
@@ -566,7 +620,7 @@ class MyWindow(arcade.Window):
                     bullet.kill()
                     hp = hit_list[0].getDamage(self.player.dmg)
 
-                    # if zombie hp is 0, kill it and play sound
+                    # if zombie hp is 0, kill it and play a sound
                     if hp <= 0:
                         zombie_dying = DeadZombie()
                         zombie_dying.center_x = hit_list[0].center_x
@@ -580,6 +634,7 @@ class MyWindow(arcade.Window):
                         new_coin.center_x = hit_list[0].center_x
                         new_coin.center_y = hit_list[0].center_y
                         self.coin_list.append(new_coin)
+                        self.animated_list.append(new_coin)
                         for enemy in hit_list:
                             enemy.kill()
                         
@@ -624,19 +679,30 @@ class MyWindow(arcade.Window):
 
 
             ## if boss or zombies touch the player, game is over
-            if len(arcade.check_for_collision_with_list(self.player, self.boss_list)) > 0 or \
-                len(arcade.check_for_collision_with_list(self.player, self.enemy_list)) > 0:
 
-                if self.temp_state != GameState.GAME_ENDING:
-                    dead_wizard  = DeadKnight()
-                    dead_wizard.center_x = self.player.center_x
-                    dead_wizard.center_y = self.player.center_y
-                    self.temp_state = GameState.GAME_ENDING
-                    self.dead_wizard_list.append(dead_wizard)
-                    game_over_sound = sound.Sound(GAME_OVER_SOUND)
-                    game_over_sound.play()
-                    
-                self.player.kill()
+            boss_hit = arcade.check_for_collision_with_list(self.player, self.boss_list)
+            enemy_hit = arcade.check_for_collision_with_list(self.player, self.enemy_list)
+            if len(boss_hit) > 0 or len(enemy_hit) > 0:
+
+                distance = 500
+                if len(boss_hit) > 0:
+                    distance = self.player.center_x - boss_hit[0].center_x
+
+                if len(enemy_hit) > 0:
+                    distance = self.player.center_x - enemy_hit[0].center_x
+
+                ## add some buffer for collisions. 30 seems good
+                if abs(distance) < 30:
+                    if self.temp_state != GameState.GAME_ENDING:
+                        dead_knight  = DeadKnight()
+                        dead_knight.center_x = self.player.center_x
+                        dead_knight.center_y = self.player.center_y
+                        self.temp_state = GameState.GAME_ENDING
+                        self.dead_knight_list.append(dead_knight)
+                        game_over_sound = sound.Sound(GAME_OVER_SOUND)
+                        game_over_sound.play()
+
+                    self.player.kill()
 
             ## check if player hits a coin
             coin_collect_list = arcade.check_for_collision_with_list(self.player, self.coin_list)
