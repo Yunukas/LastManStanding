@@ -1,4 +1,5 @@
-# A top down platform game developed with Python using Arcade library.
+# Last Man Standing
+## A top down platform game developed with Python using Arcade library.
 ### What could be improved?
    - [ ] Needs more levels ( Currently there is only 1 level )
    - [ ] Better enemy movements
